@@ -1,0 +1,911 @@
+{
+  "datasets": [
+    {
+      "name": "ds_cov",
+      "displayName": "Vendor coverage (mv_vendor_coverage)",
+      "queryLines": [
+        "SELECT `Vendor` AS vendor, `Data Type` AS data_type, `Region` AS region, ",
+        "`Therapeutic Area` AS therapeutic_area, MEASURE(`Total Coverage`) AS total_coverage, ",
+        "MEASURE(`Product Count`) AS products ",
+        "FROM aws_serverless_ws_sr_catalog.lumora_vendor_marketplace.mv_vendor_coverage GROUP BY ALL"
+      ]
+    },
+    {
+      "name": "ds_spend",
+      "displayName": "Contract spend (mv_contract_spend)",
+      "queryLines": [
+        "SELECT `Vendor` AS vendor, `Contract Status` AS contract_status, ",
+        "`Contract End Date` AS contract_end, `Contract End Month` AS contract_end_month, ",
+        "MEASURE(`Contract Count`) AS contracts, MEASURE(`Total Annual Spend`) AS annual_spend, ",
+        "MEASURE(`Spend at Risk`) AS spend_at_risk ",
+        "FROM aws_serverless_ws_sr_catalog.lumora_vendor_marketplace.mv_contract_spend GROUP BY ALL"
+      ]
+    },
+    {
+      "name": "ds_contacts",
+      "displayName": "Vendor contacts (masked PII)",
+      "queryLines": [
+        "SELECT vendor_name, contact_name, title, contact_type, email, phone ",
+        "FROM aws_serverless_ws_sr_catalog.lumora_vendor_marketplace.vendor_contacts"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "coverage",
+      "displayName": "Vendor coverage",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "t_cov",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Which vendor covers what, where?",
+                "Every number here comes from the **mv_vendor_coverage** metric view \u2014 the same measure definitions Genie uses. Filter to *HCP + Egypt* to answer the flagship question."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "f_dt",
+            "queries": [
+              {
+                "name": "f_data_type",
+                "query": {
+                  "datasetName": "ds_cov",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "data_type",
+                      "expression": "`data_type`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "data_type",
+                    "displayName": "Data type",
+                    "queryName": "f_data_type"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Data type"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "f_rg",
+            "queries": [
+              {
+                "name": "f_region",
+                "query": {
+                  "datasetName": "ds_cov",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "region",
+                    "displayName": "Region",
+                    "queryName": "f_region"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Region"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "f_ta",
+            "queries": [
+              {
+                "name": "f_therapeutic_area",
+                "query": {
+                  "datasetName": "ds_cov",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "therapeutic_area",
+                      "expression": "`therapeutic_area`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "filter-multi-select",
+              "encodings": {
+                "fields": [
+                  {
+                    "fieldName": "therapeutic_area",
+                    "displayName": "Therapeutic area",
+                    "queryName": "f_therapeutic_area"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Therapeutic area"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 1
+          }
+        },
+        {
+          "widget": {
+            "name": "k_vendors",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cov",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "v",
+                      "expression": "COUNT(DISTINCT `vendor`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "v",
+                  "displayName": "Vendors"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Vendors"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 3,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "k_cov",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cov",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "v",
+                      "expression": "SUM(`total_coverage`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "v",
+                  "displayName": "Total coverage (records)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total coverage (records)"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 3,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "k_regions",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cov",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "v",
+                      "expression": "COUNT(DISTINCT `region`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "v",
+                  "displayName": "Regions covered"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Regions covered"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 3,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "b_vendor",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cov",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "vendor",
+                      "expression": "`vendor`"
+                    },
+                    {
+                      "name": "y",
+                      "expression": "SUM(`total_coverage`)"
+                    },
+                    {
+                      "name": "data_type",
+                      "expression": "`data_type`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "vendor",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "Vendor"
+                },
+                "y": {
+                  "fieldName": "y",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Total coverage"
+                },
+                "color": {
+                  "fieldName": "data_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Data Type"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Coverage by vendor"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "b_region",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cov",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    },
+                    {
+                      "name": "y",
+                      "expression": "SUM(`total_coverage`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "region",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "Region"
+                },
+                "y": {
+                  "fieldName": "y",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Total coverage"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Coverage by region"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "h_dt_rg",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_cov",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "region",
+                      "expression": "`region`"
+                    },
+                    {
+                      "name": "data_type",
+                      "expression": "`data_type`"
+                    },
+                    {
+                      "name": "v",
+                      "expression": "COUNT(DISTINCT `vendor`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "heatmap",
+              "encodings": {
+                "x": {
+                  "fieldName": "region",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Region"
+                },
+                "y": {
+                  "fieldName": "data_type",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "Data Type"
+                },
+                "color": {
+                  "fieldName": "v",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Vendors"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Vendor depth: # vendors by data type \u00d7 region"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 7
+          }
+        }
+      ]
+    },
+    {
+      "name": "spend",
+      "displayName": "Contracts & spend (governed)",
+      "pageType": "PAGE_TYPE_CANVAS",
+      "layout": [
+        {
+          "widget": {
+            "name": "t_spend",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Contracts, renewals & spend",
+                "Contract cost is protected by a **Unity Catalog column mask**: members of `lumora_finance` see dollar values; everyone else sees blanks. Contact email/phone are partially masked and Commercial/Pricing contacts are row-filtered. Same dashboard, same queries \u2014 governance is enforced per viewer."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "k_contracts",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_spend",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "v",
+                      "expression": "SUM(`contracts`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "v",
+                  "displayName": "Contracts"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Contracts"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "k_spend",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_spend",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "v",
+                      "expression": "SUM(`annual_spend`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "v",
+                  "displayName": "Total annual spend (USD, finance only)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Total annual spend (USD, finance only)"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "k_risk",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_spend",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "v",
+                      "expression": "SUM(`spend_at_risk`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "v",
+                  "displayName": "Spend at risk \u2014 expiring soon (finance only)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Spend at risk \u2014 expiring soon (finance only)"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "b_status",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_spend",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "contract_status",
+                      "expression": "`contract_status`"
+                    },
+                    {
+                      "name": "y",
+                      "expression": "SUM(`contracts`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "contract_status",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "Contract Status"
+                },
+                "y": {
+                  "fieldName": "y",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Contracts"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Contracts by status"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 4,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "b_spend",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_spend",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "vendor",
+                      "expression": "`vendor`"
+                    },
+                    {
+                      "name": "y",
+                      "expression": "SUM(`annual_spend`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "vendor",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "Vendor"
+                },
+                "y": {
+                  "fieldName": "y",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Annual spend (USD)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Annual spend by vendor (finance only)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 4,
+            "width": 3,
+            "height": 5
+          }
+        },
+        {
+          "widget": {
+            "name": "tb_contracts",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_spend",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "vendor",
+                      "expression": "`vendor`"
+                    },
+                    {
+                      "name": "contract_status",
+                      "expression": "`contract_status`"
+                    },
+                    {
+                      "name": "contract_end",
+                      "expression": "`contract_end`"
+                    },
+                    {
+                      "name": "annual_spend",
+                      "expression": "`annual_spend`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "vendor",
+                    "displayName": "Vendor"
+                  },
+                  {
+                    "fieldName": "contract_status",
+                    "displayName": "Status"
+                  },
+                  {
+                    "fieldName": "contract_end",
+                    "displayName": "Contract end"
+                  },
+                  {
+                    "fieldName": "annual_spend",
+                    "displayName": "Annual spend (USD)"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Contract register"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 3,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "tb_contacts",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_contacts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "vendor_name",
+                      "expression": "`vendor_name`"
+                    },
+                    {
+                      "name": "contact_name",
+                      "expression": "`contact_name`"
+                    },
+                    {
+                      "name": "title",
+                      "expression": "`title`"
+                    },
+                    {
+                      "name": "contact_type",
+                      "expression": "`contact_type`"
+                    },
+                    {
+                      "name": "email",
+                      "expression": "`email`"
+                    },
+                    {
+                      "name": "phone",
+                      "expression": "`phone`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "vendor_name",
+                    "displayName": "Vendor"
+                  },
+                  {
+                    "fieldName": "contact_name",
+                    "displayName": "Contact"
+                  },
+                  {
+                    "fieldName": "title",
+                    "displayName": "Title"
+                  },
+                  {
+                    "fieldName": "contact_type",
+                    "displayName": "Type"
+                  },
+                  {
+                    "fieldName": "email",
+                    "displayName": "Email"
+                  },
+                  {
+                    "fieldName": "phone",
+                    "displayName": "Phone"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Vendor contacts (PII masked)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 9,
+            "width": 3,
+            "height": 7
+          }
+        }
+      ]
+    }
+  ],
+  "uiSettings": {
+    "genieSpace": {
+      "isEnabled": true,
+      "overrideId": "01f1c14e775014ac9693c78ae663bc6c",
+      "enablementMode": "ENABLED"
+    }
+  }
+}

@@ -1,0 +1,175 @@
+bundle:
+  name: lumora_vendor_marketplace
+
+# =============================================================================
+# Lumora Clinical Research (fictional CRO) — Governed Vendor Data Marketplace
+#
+# One bundle, one integrated journey:
+#   Lakeflow  (Auto Loader ingest pipeline + DQ expectations pipeline + jobs)
+#   Unity Catalog (schema, volume, comments, column masks, row filter, metric views)
+#   Lakebase  (database instance serving the app's vendor tiles)
+#   Gen AI    (vector search, Agent Bricks supervisor + KA, MLflow eval, AI Gateway)
+#   Genie     (created by genie/create_spaces.py — see README)
+#   App       (Streamlit marketplace wired to Lakebase + the supervisor)
+#
+# catalog / schema MUST match notebooks/00_config.
+# =============================================================================
+variables:
+  catalog:
+    description: Unity Catalog catalog (must match 00_config CATALOG)
+    default: aws_serverless_ws_sr_catalog
+  schema:
+    description: Schema this project creates (must match 00_config SCHEMA)
+    default: lumora_vendor_marketplace
+  warehouse_id:
+    description: SQL warehouse used by Genie and the app
+    default: 2cc7c1b1bd1873ce
+  supervisor_endpoint:
+    description: Agent Bricks supervisor serving endpoint (from agent_bricks/create_agents.py)
+    default: mas-f66866f4-endpoint   # from agent_bricks/agents.json
+
+resources:
+  # ---------------------------------------------------------------- Lakeflow
+  pipelines:
+    ingest_vendor_catalog:
+      name: "Lumora — Ingest Vendor Catalog (Auto Loader)"
+      serverless: true
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      configuration:
+        lumora.catalog: ${var.catalog}
+        lumora.schema: ${var.schema}
+        lumora.raw_path: /Volumes/${var.catalog}/${var.schema}/raw_vendor_catalogs
+      libraries:
+        - notebook:
+            path: ./pipelines/ingest_vendor_catalog.py
+
+    dlt_quality:
+      name: "Lumora — DQ Expectations (Lakeflow)"
+      serverless: true
+      catalog: ${var.catalog}
+      schema: ${var.schema}
+      configuration:
+        demo.catalog: ${var.catalog}
+        demo.schema: ${var.schema}
+      libraries:
+        - notebook:
+            path: ./notebooks/13_dlt_quality_pipeline.py
+
+  # ---------------------------------------------------------------- Lakebase
+  database_instances:
+    lumora_db:
+      name: lumora-marketplace-db
+      capacity: CU_1
+
+  # ------------------------------------------------------- Lakeflow Jobs
+  jobs:
+    end_to_end:
+      name: "Lumora — End-to-End Data Journey"
+      tasks:
+        - task_key: setup_and_generate_raw
+          notebook_task: {notebook_path: ./notebooks/01_setup_and_generate_raw.py}
+        - task_key: ingest_pipeline
+          depends_on: [{task_key: setup_and_generate_raw}]
+          pipeline_task: {pipeline_id: "${resources.pipelines.ingest_vendor_catalog.id}", full_refresh: false}
+        - task_key: enrich_for_genie
+          depends_on: [{task_key: ingest_pipeline}]
+          notebook_task: {notebook_path: ./notebooks/02_enrich_for_genie.py}
+        - task_key: governance_masking
+          depends_on: [{task_key: enrich_for_genie}]
+          notebook_task: {notebook_path: ./notebooks/14_governance_masking.py}
+        - task_key: metric_views
+          depends_on: [{task_key: governance_masking}]
+          notebook_task: {notebook_path: ./notebooks/15_metric_views.py}
+        - task_key: generate_vendor_docs
+          depends_on: [{task_key: enrich_for_genie}]
+          notebook_task: {notebook_path: ./notebooks/03_generate_vendor_docs.py}
+        - task_key: vector_search
+          depends_on: [{task_key: generate_vendor_docs}]
+          notebook_task: {notebook_path: ./notebooks/04_vector_search.py}
+        - task_key: data_quality_rules
+          depends_on: [{task_key: enrich_for_genie}]
+          notebook_task: {notebook_path: ./notebooks/10_data_quality.py}
+        - task_key: dq_pipeline
+          depends_on: [{task_key: data_quality_rules}]
+          pipeline_task: {pipeline_id: "${resources.pipelines.dlt_quality.id}", full_refresh: true}
+        - task_key: sync_to_lakebase
+          depends_on: [{task_key: enrich_for_genie}]
+          notebook_task: {notebook_path: ./notebooks/11_sync_to_lakebase.py}
+
+    agent_and_eval:
+      name: "Lumora — Agent Build, Validation & MLflow Eval"
+      tasks:
+        - task_key: build_agent
+          notebook_task: {notebook_path: ./notebooks/05_build_agent.py}
+        - task_key: validate_agent
+          depends_on: [{task_key: build_agent}]
+          notebook_task: {notebook_path: ./notebooks/07_validate_agent.py}
+        - task_key: mlflow_eval
+          depends_on: [{task_key: validate_agent}]
+          notebook_task: {notebook_path: ./notebooks/08_mlflow_eval.py}
+        - task_key: export_observability
+          depends_on: [{task_key: mlflow_eval}]
+          notebook_task: {notebook_path: ./notebooks/09_export_observability.py}
+
+    deploy_agent:
+      name: "Lumora — (optional) Deploy Code-First Agent Endpoint"
+      tasks:
+        - task_key: deploy_agent
+          notebook_task: {notebook_path: ./notebooks/06_deploy_agent.py}
+
+  # ------------------------------------------------- AI Gateway (Gen AI governance)
+  model_serving_endpoints:
+    guarded_llm:
+      name: lumora_guarded_llm
+      config:
+        served_entities:
+          - name: claude
+            external_model:
+              name: claude-sonnet-4-5-20250929
+              provider: anthropic
+              task: llm/v1/chat
+              anthropic_config:
+                anthropic_api_key: "{{secrets/llm_secrets/anthropic_api_key}}"
+      ai_gateway:
+        guardrails:
+          input:  {safety: true, pii: {behavior: BLOCK}}
+          output: {safety: true, pii: {behavior: BLOCK}}
+        rate_limits:
+          - {calls: 100, key: endpoint, renewal_period: minute}
+        usage_tracking_config: {enabled: true}
+
+  # --------------------------------------------------------- Databricks App
+  apps:
+    marketplace:
+      name: lumora-data-marketplace
+      description: "Lumora Clinical Research — governed third-party data vendor marketplace"
+      source_code_path: ./app_ui
+      config:
+        command: ["streamlit", "run", "app.py", "--server.port", "8000", "--server.address", "0.0.0.0"]
+        env:
+          - name: MAS_ENDPOINT
+            value: ${var.supervisor_endpoint}
+          - name: PG_SCHEMA
+            value: lumora
+          - name: LAKEBASE_INSTANCE
+            value: ${resources.database_instances.lumora_db.name}
+      # Grants the app's service principal CAN_USE / CAN_CONNECT automatically.
+      # Supervisor, Knowledge Assistant, Genie and UC grants are applied by
+      # agent_bricks/create_agents.py (they're created after the data layer).
+      resources:
+        - name: warehouse
+          sql_warehouse: {id: "${var.warehouse_id}", permission: CAN_USE}
+        - name: lakebase
+          database:
+            instance_name: ${resources.database_instances.lumora_db.name}
+            database_name: databricks_postgres
+            permission: CAN_CONNECT_AND_CREATE
+
+targets:
+  dev:
+    mode: development
+    default: true
+    workspace:
+      host: https://fevm-aws-serverless-ws-sr.cloud.databricks.com
+      root_path: /Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}

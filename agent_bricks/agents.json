@@ -1,0 +1,8 @@
+{
+  "knowledge_assistant_id": "f3190c1a-0845-48db-9258-d8678be480df",
+  "ka_endpoint": "ka-f3190c1a-endpoint",
+  "supervisor_agent_id": "f66866f4-713a-431d-8a7e-010421677db8",
+  "supervisor_endpoint": "mas-f66866f4-endpoint",
+  "genie_space_id": "01f1c14e775014ac9693c78ae663bc6c",
+  "app_service_principal": "e5b94b89-a734-479c-a82a-1221417aff8d"
+}

@@ -1,0 +1,7 @@
+.databricks/
+**/.databricks/
+.DS_Store
+__pycache__/
+*.pyc
+dashboards/.dashboard_id
+deck/deck_spec.json
