@@ -16,13 +16,16 @@ are in [`tools/`](tools/) and can be re-run against any deployment.
 | [`agent_bricks_responses.md`](agent_bricks_responses.md) | **Agent Bricks** supervisor routing to Genie (structured) and the Knowledge Assistant (documents); KA answering directly | `tools/capture_live.py agents` |
 | [`ai_gateway_guardrails.md`](ai_gateway_guardrails.md) | **AI Gateway** config + live calls: allowed answer, safety block (`violent-crimes`), PII block with anonymized input | `tools/capture_live.py gateway` |
 | [`mlflow_evaluation.md`](mlflow_evaluation.md) | MLflow experiment runs and judge metrics, traces | `tools/capture_live.py mlflow` |
+| [`sql_evidence_finance.md`](sql_evidence_finance.md), [`genie_conversations_finance.md`](genie_conversations_finance.md) | **Same queries re-run by a member of `lumora_finance`** — real contract costs, all 54 contacts incl. Commercial/Pricing, full email/phone; Genie reports total spend $4,275,000. Compare with the non-finance files above: one policy, two identities, different results | `EVIDENCE_TAG=finance tools/capture_live.py sql genie` |
+| [`app_logs.md`](app_logs.md) | **Databricks App** runtime: `LAKEBASE_TILES_LOADED rows=18` (tiles served from Lakebase Postgres) and `ASSISTANT_ANSWERED endpoint=mas-f66866f4-endpoint` for "Which vendors provide HCP data in Egypt?" from a real browser session | `tools/capture_app_logs.sh` |
 | [`platform_status.md`](platform_status.md) | **Lakebase** instance AVAILABLE, **Databricks App** RUNNING with its deployment, **AI/BI dashboard** pages/widgets/Ask Genie/published state | `tools/capture_live.py platform` |
 
 ## Notes for the reviewer (what happened along the way)
 
-- **Evidence was captured as a non-finance user.** The capturing user is not in `lumora_finance`,
-  so contract cost reads as `NULL` everywhere (SQL, metric views, Genie, agents) — that is the
-  column mask working. `sql_evidence.md` shows the registered masks and the `is_member` check.
+- **Two identities.** The main captures were taken before the capturing user joined `lumora_finance`,
+  so contract cost reads as `NULL` everywhere (SQL, metric views, Genie, agents) — the column mask
+  working. The `*_finance.md` files were captured after joining the group (`is_member = true`). The
+  app's service principal is not in the group, so the app's assistant always sees masked cost.
 - **The eval gate caught a real governance leak.** An earlier eval run scored correctness 0.5–0.75
   (visible as older runs in `mlflow_evaluation.md`). Two causes, both fixed:
   1. the eval's expected answers were hard-coded from an older data snapshot → expectations are now

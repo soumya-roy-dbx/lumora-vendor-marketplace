@@ -20,8 +20,29 @@ MAS_ENDPOINT = os.environ.get("MAS_ENDPOINT", "REPLACE_WITH_YOUR_MAS_ENDPOINT")
 _NAME_TAG = re.compile(r"\s*<name>.*?</name>\s*", re.DOTALL)
 
 
+def _strip_tool_tables(text: str) -> str:
+    """Drop the compact table dump a Genie sub-agent echoes into the stream
+    (starts with "||col|col|" then one "|i|...|" row per line). The supervisor's
+    own prose answer that follows is kept."""
+    out, lines, i = [], text.split("\n"), 0
+    while i < len(lines):
+        line = lines[i]
+        k = line.find("||")
+        if k == -1:
+            out.append(line); i += 1; continue
+        head, j = line[:k], i
+        while j + 1 < len(lines) and lines[j + 1].lstrip().startswith("|"):
+            j += 1
+        last = lines[j] if j > i else line[k:]
+        tail = last[last.rfind("|") + 1:]
+        out.append((head + " " + tail).strip())
+        i = j + 1
+    return "\n".join(out)
+
+
 def _clean(text: str) -> str:
     text = _NAME_TAG.sub(" ", text)
+    text = _strip_tool_tables(text)
     # collapse whitespace left behind, but keep paragraph/line breaks
     text = re.sub(r"[ \t]{2,}", " ", text)
     text = re.sub(r"\n{3,}", "\n\n", text)
