@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lumora × Databricks — Presenter Guide</title>
+<style>
+  :root {
+    --ground:#F6F8F8; --surface:#FFFFFF; --surface-2:#EEF3F3; --border:#DCE5E5; --ink:#12202A; --body:#36444F;
+    --muted:#6B7780; --accent:#0E7C86; --accent-deep:#095A61; --accent-soft:#DDF0F1; --warn:#9A5B12; --warn-soft:#F8EBD8;
+    --ok:#1F7A4D; --ok-soft:#E1F1E8; --radius:12px; --shadow:0 1px 2px rgba(18,32,42,.05),0 6px 18px rgba(18,32,42,.06);
+    --mono:ui-monospace,SFMono-Regular,Menlo,monospace; --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,system-ui,sans-serif;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--ground); color:var(--body); font:15px/1.6 var(--sans); }
+  .wrap { max-width:1060px; margin:0 auto; padding:0 24px; }
+  .ribbon { background:var(--ink); color:#fff; font-size:.82rem; padding:8px 0; }
+  .ribbon b { background:var(--accent); padding:2px 8px; border-radius:4px; margin-right:10px; font-family:var(--mono); font-size:.7rem; letter-spacing:.06em; }
+  header { padding:40px 0 18px; }
+  h1 { color:var(--ink); font-size:2.1rem; line-height:1.15; margin:6px 0 10px; letter-spacing:-.01em; }
+  .eyebrow { font-family:var(--mono); font-size:.72rem; letter-spacing:.12em; text-transform:uppercase; color:var(--accent-deep); }
+  .lede { font-size:1.02rem; max-width:820px; }
+  nav.toc { position:sticky; top:0; z-index:5; background:rgba(246,248,248,.94); backdrop-filter:blur(6px); border-bottom:1px solid var(--border); }
+  nav.toc ul { list-style:none; margin:0; padding:10px 0; display:flex; flex-wrap:wrap; gap:6px 16px; font-size:.84rem; }
+  nav.toc a { color:var(--accent-deep); text-decoration:none; }
+  section { padding:30px 0 6px; }
+  h2 { color:var(--ink); font-size:1.45rem; margin:0 0 4px; display:flex; gap:12px; align-items:baseline; }
+  h2 .n { font-family:var(--mono); color:var(--accent); font-size:.85rem; }
+  h3 { color:var(--ink); font-size:1.08rem; margin:22px 0 6px; }
+  .sub { color:var(--muted); margin:0 0 16px; }
+  code { font-family:var(--mono); font-size:.84em; background:var(--surface-2); padding:1px 5px; border-radius:4px; color:var(--ink); }
+  a { color:var(--accent-deep); }
+  table { width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); font-size:.9rem; }
+  th, td { text-align:left; padding:9px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  th { background:var(--surface-2); color:var(--ink); font-size:.78rem; text-transform:uppercase; letter-spacing:.05em; }
+  tr:last-child td { border-bottom:none; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px 18px; margin:12px 0; }
+  .callout { border-left:4px solid var(--accent); background:var(--accent-soft); padding:12px 16px; border-radius:8px; margin:14px 0; }
+  .warn { border-left:4px solid var(--warn); background:var(--warn-soft); padding:12px 16px; border-radius:8px; margin:14px 0; }
+  .beat { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); margin:14px 0; overflow:hidden; }
+  .beat .top { display:flex; gap:12px; align-items:center; padding:10px 16px; background:var(--surface-2); border-bottom:1px solid var(--border); }
+  .beat .top .id { font-family:var(--mono); font-size:.75rem; font-weight:700; color:#fff; background:var(--accent); padding:2px 8px; border-radius:5px; }
+  .beat .top h4 { margin:0; color:var(--ink); font-size:1rem; }
+  .beat .top .t { margin-left:auto; font-family:var(--mono); font-size:.72rem; color:var(--muted); }
+  .beat .rows { padding:4px 16px 12px; }
+  .row { display:grid; grid-template-columns:96px 1fr; gap:12px; padding:8px 0; border-bottom:1px dotted var(--border); }
+  .row:last-child { border-bottom:none; }
+  .lbl { font-family:var(--mono); font-size:.66rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); font-weight:700; padding-top:3px; }
+  .row.say .v { color:var(--ink); font-style:italic; }
+  .row.say .lbl { color:var(--accent-deep); }
+  .row.risk .lbl { color:var(--warn); }
+  ol.clicks { margin:0; padding-left:20px; } ol.clicks li { margin:3px 0; }
+  .slide { display:inline-block; font-family:var(--mono); font-size:.7rem; background:var(--ink); color:#fff; padding:1px 7px; border-radius:4px; margin-right:6px; }
+  details { background:var(--surface); border:1px solid var(--border); border-radius:10px; margin:8px 0; box-shadow:var(--shadow); }
+  summary { cursor:pointer; padding:11px 16px; font-weight:600; color:var(--ink); list-style:none; }
+  summary::-webkit-details-marker { display:none; }
+  summary::before { content:"Q"; display:inline-block; width:22px; height:22px; margin-right:10px; border-radius:50%; background:var(--accent); color:#fff; font-family:var(--mono); font-size:.72rem; text-align:center; line-height:22px; }
+  details[open] summary { border-bottom:1px dotted var(--border); }
+  details .ans { padding:8px 16px 12px 48px; }
+  details .ans p { margin:6px 0; }
+  .note { color:var(--muted); font-size:.86rem; }
+  .qgroup { font-family:var(--mono); font-size:.74rem; letter-spacing:.1em; text-transform:uppercase; color:var(--accent-deep); margin:24px 0 6px; font-weight:700; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:760px){ .grid2{grid-template-columns:1fr;} .row{grid-template-columns:1fr;} }
+  footer { padding:30px 0 50px; color:var(--muted); font-size:.82rem; }
+  @media print { nav.toc{position:static;} details{break-inside:avoid;} details .ans{display:block;} }
+</style>
+</head>
+<body>
+
+<div class="ribbon"><div class="wrap"><b>PRESENTER ONLY</b>Your run sheet — keep on a second screen. Share the deck and the Databricks tabs, not this page.</div></div>
+
+<header>
+  <div class="wrap">
+    <span class="eyebrow">Lumora Clinical Research × Databricks · Presenter guide</span>
+    <h1>Governed vendor-data marketplace — what to show, where to click, what to say</h1>
+    <p class="lede">A ~45-minute walk that follows the deck, sets the <b>data context first</b>, then drops into the live
+    Databricks build at Slide 7 and comes back to value, rollout and the ask. Every number below comes from the
+    committed evidence in the repo (<code>evidence/</code>), so you can say it with confidence.</p>
+  </div>
+</header>
+
+<nav class="toc"><div class="wrap"><ul>
+  <li><a href="#prep">0 · Before the call</a></li>
+  <li><a href="#flow">1 · Run of show</a></li>
+  <li><a href="#open">2 · Open (S1–S3)</a></li>
+  <li><a href="#data">3 · The data</a></li>
+  <li><a href="#who">4 · Who benefits (S4–S6)</a></li>
+  <li><a href="#demo">5 · Live demo (S7)</a></li>
+  <li><a href="#close">6 · Trust → ask (S8–S12)</a></li>
+  <li><a href="#qa">7 · Likely questions</a></li>
+  <li><a href="#ref">8 · Links &amp; numbers</a></li>
+</ul></div></nav>
+
+<!-- ============================================================ 0 -->
+<section id="prep"><div class="wrap">
+  <h2><span class="n">00</span>Before the call (15 minutes ahead)</h2>
+  <p class="sub">Open these tabs in this order, warm the slow parts, and know which identity sees what.</p>
+  <table>
+    <tr><th style="width:4%">#</th><th style="width:30%">Tab</th><th>URL / where</th></tr>
+    <tr><td>1</td><td>Deck (Slides, presenter view)</td><td><a href="https://docs.google.com/presentation/d/1FxS7cNgPotaaIvkm2yCXd2ab9bAYoDNGljdTQSRGuVo/edit">Google Slides deck</a> — speaker notes are on every slide</td></tr>
+    <tr><td>2</td><td>Raw landing zone</td><td>Catalog → <code>aws_serverless_ws_sr_catalog</code> → <code>lumora_vendor_marketplace</code> → Volumes → <code>raw_vendor_catalogs</code> → open <code>V001_MediReach_Analytics.json</code></td></tr>
+    <tr><td>3</td><td>Lakeflow Job</td><td>Jobs &amp; Pipelines → <b>[dev soumya_r] Lumora — End-to-End Data Journey</b> → latest run (<code>1002479881266291</code>) → Graph view</td></tr>
+    <tr><td>4</td><td>Auto Loader pipeline</td><td>Jobs &amp; Pipelines → <b>[dev soumya_r] Lumora — Ingest Vendor Catalog (Auto Loader)</b> → latest update (graph)</td></tr>
+    <tr><td>5</td><td>Contracts table</td><td>Catalog → <code>lumora_vendor_marketplace</code> → <code>contracts</code> → Overview (the mask on <code>annual_cost_usd</code>) and Lineage</td></tr>
+    <tr><td>6</td><td>Marketplace app</td><td><a href="https://lumora-data-marketplace-7474651022795245.aws.databricksapps.com">lumora-data-marketplace</a> → <b>3rd Party Data</b></td></tr>
+    <tr><td>7</td><td>Genie space</td><td><a href="https://fevm-aws-serverless-ws-sr.cloud.databricks.com/genie/rooms/01f1c14e775014ac9693c78ae663bc6c">Lumora Vendor Data Marketplace</a></td></tr>
+    <tr><td>8</td><td>AI/BI dashboard</td><td><a href="https://fevm-aws-serverless-ws-sr.cloud.databricks.com/dashboardsv3/01f1c150bacd1aa3bab5046199ce019a/published">Lumora Vendor Data Marketplace — Insights</a> (published)</td></tr>
+    <tr><td>9</td><td>Metric view</td><td>Catalog → <code>lumora_vendor_marketplace</code> → <code>mv_vendor_coverage</code> (YAML definition)</td></tr>
+    <tr><td>10</td><td>AI Gateway endpoint</td><td>Serving → <code>dev_soumya_r_lumora_guarded_llm</code> (AI Gateway section) · Playground with that endpoint selected</td></tr>
+    <tr><td>11</td><td>MLflow experiment</td><td>Experiments → <code>lumora_genie_eval</code> → run <code>hilarious-fawn-469</code> (correctness / relevance / safety = 1.0)</td></tr>
+    <tr><td>12</td><td>DQ pipeline</td><td>Jobs &amp; Pipelines → <b>[dev soumya_r] Lumora — DQ Expectations (Lakeflow)</b> → <code>coverage_clean</code> → Data quality</td></tr>
+  </table>
+
+  <div class="card">
+    <b>Warm-ups (do all three):</b>
+    <ol class="clicks">
+      <li><b>Ask the app once</b>: "Which vendors provide HCP data in Egypt?" — the first supervisor call takes ~30 s (measured 31.8 s); after that it's quicker.</li>
+      <li><b>Run one Genie question</b> so the SQL warehouse (<code>2cc7c1b1bd1873ce</code>) is up.</li>
+      <li><b>Load the dashboard</b> once so tiles are cached.</li>
+    </ol>
+  </div>
+
+  <div class="callout">
+    <b>Who sees what (this is your masking demo — no group toggling needed):</b>
+    <ul>
+      <li><b>You</b> are in <code>lumora_finance</code> → in Genie, SQL, the dashboard and Catalog you see real contract costs (e.g. GlobalTrials Registry <b>$400,000</b>) and all 54 vendor contacts.</li>
+      <li><b>The app</b> runs as its own service principal, which is <b>not</b> in <code>lumora_finance</code> → the same cost question in the app comes back <b>masked</b>.</li>
+      <li><b>Customer viewers</b> (not in the group) of the dashboard see spend tiles blank — it's published with viewer credentials.</li>
+    </ul>
+    Same data, same question, two identities, two answers — enforced by Unity Catalog, not by the app.
+  </div>
+
+  <div class="warn"><b>Fallback:</b> if anything is slow or down live, open the matching file in the public repo
+  (<a href="https://github.com/soumya-roy-dbx/lumora-vendor-marketplace/tree/main/evidence">evidence/</a>) — every
+  demo step was executed and captured as text there.</div>
+</div></section>
+
+<!-- ============================================================ 1 -->
+<section id="flow"><div class="wrap">
+  <h2><span class="n">01</span>Run of show (~45 min)</h2>
+  <table>
+    <tr><th style="width:12%">Time</th><th style="width:18%">Deck</th><th style="width:22%">On screen</th><th>Goal</th></tr>
+    <tr><td>0:00–5:00</td><td>Slides 1–3</td><td>Deck</td><td>Outcome first; the problem in their words</td></tr>
+    <tr><td>5:00–11:00</td><td>(after S3)</td><td>Volume → JSON → Gold tables</td><td><b>Set the data context</b>: what a vendor catalog contains and why it's a structured problem</td></tr>
+    <tr><td>11:00–16:00</td><td>Slides 4–6</td><td>Deck</td><td>Value for sponsor and domain owner; the one integrated journey</td></tr>
+    <tr><td>16:00–34:00</td><td>Slide 7</td><td>App → Genie → metric view → dashboard → masking → Lakeflow → Gateway → MLflow</td><td>Prove it live, in the order a sourcing request flows</td></tr>
+    <tr><td>34:00–42:00</td><td>Slides 8–12</td><td>Deck</td><td>Trust, value model, proof, 30/60/90, the ask</td></tr>
+    <tr><td>42:00–45:00+</td><td>Slide 13</td><td>Deck / back to demo</td><td>Questions (see §7)</td></tr>
+  </table>
+</div></section>
+
+<!-- ============================================================ 2 -->
+<section id="open"><div class="wrap">
+  <h2><span class="n">02</span>Open — Slides 1 to 3</h2>
+
+  <div class="beat"><div class="top"><span class="id">S1</span><h4>From spreadsheet guesswork to governed answers</h4><span class="t">~1 min</span></div><div class="rows">
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Lumora spends millions a year on third-party data and makes feasibility and commercial decisions on it. Today, finding out which vendor can supply which data, where, is a spreadsheet hunt. In the next 45 minutes I'll show you how that becomes a governed, complete answer in seconds — running live on Databricks."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">S2</span><h4>The outcome: faster, complete, governed vendor decisions</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Three outcomes. Money — on illustrative assumptions, about six hundred thousand dollars a year; I'll show the math. Speed — a sourcing request goes from days to minutes. And completeness — the question that returned one vendor in the old pattern returns all three, with the SQL to prove it."</span></div>
+    <div class="row risk"><span class="lbl">Careful</span><span class="v">Always call the $ figures <b>illustrative assumptions</b>, not Lumora data. Offer to replace them with their numbers (Slide 9).</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">S3</span><h4>Today: the vendor catalog lives in spreadsheets — and so do the risks</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Every study-feasibility or targeting question starts with: who can give us this data, in this country, for this therapeutic area? The answer lives in spreadsheets someone pastes into a chatbot. The result is inconsistent — in a real run it named one vendor when three qualified — there's no SQL to check, contract cost and vendor contacts are visible to anyone with the file, and renewals slip."</span></div>
+    <div class="row"><span class="lbl">Transition</span><span class="v">"Before we talk about fixing it, let me show you the data itself — because once you see its shape, the solution is obvious."</span></div>
+  </div></div>
+</div></section>
+
+<!-- ============================================================ 3 -->
+<section id="data"><div class="wrap">
+  <h2><span class="n">03</span>Set the context — the data (live, ~6 min)</h2>
+  <p class="sub">Leave the deck after Slide 3. The point of this section: a vendor catalog is <b>structured</b> — vendor × data type × region × count — so "who covers HCP in Egypt?" is a filter, not a search.</p>
+
+  <div class="card">
+    <b>What's in the data (all synthetic — fictional CRO, fictional vendors):</b>
+    <table style="margin-top:8px">
+      <tr><th>Object</th><th>Rows</th><th>What it holds</th></tr>
+      <tr><td>Raw vendor exports (JSON in a UC Volume)</td><td>18 files</td><td>One file per vendor, as a vendor manager would drop it: profile, products, coverage, data elements, contract</td></tr>
+      <tr><td><code>vendors</code></td><td>18</td><td>Name, description, HQ, founded, delivery model (analytical platform vs. file/API)</td></tr>
+      <tr><td><code>data_products</code></td><td>44</td><td>One product per vendor × data type (8 data types: HCP, HCO, Claims, Patient, Clinical Trial, Publication, Social Media, Rx)</td></tr>
+      <tr><td><code>coverage</code></td><td>126</td><td>The heart of it: vendor × data type × <b>region (16)</b> × <b>therapeutic area (8)</b> × record count</td></tr>
+      <tr><td><code>data_elements</code></td><td>292</td><td>Field-level availability (e.g. HCP: NPI/ID, Specialty, Email…)</td></tr>
+      <tr><td><code>contracts</code></td><td>18</td><td>Start/end, status (4 Active · 4 Expiring Soon · 10 Expired), owner, <b>annual cost (masked)</b></td></tr>
+      <tr><td><code>vendor_contacts</code></td><td>54</td><td>3 named contacts per vendor — email/phone masked; commercial contacts row-filtered</td></tr>
+      <tr><td><code>vendor_documents</code></td><td>72</td><td>4 documents per vendor: contract summary, data dictionary, methodology, onboarding guide</td></tr>
+    </table>
+  </div>
+
+  <div class="beat"><div class="top"><span class="id">D0.1</span><h4>Show a raw vendor export</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Click</span><span class="v"><ol class="clicks"><li>Catalog → <code>aws_serverless_ws_sr_catalog</code> → <code>lumora_vendor_marketplace</code></li><li>Volumes → <code>raw_vendor_catalogs</code> → <code>V001_MediReach_Analytics.json</code></li><li>Scroll: <code>products</code> → <code>coverage</code> (point at <code>data_type</code>, <code>geographic_region</code>, <code>counts</code>) → <code>contract</code></li></ol></span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"This is what a vendor catalog actually is — not prose. MediReach offers HCP, HCO and publication data; each product lists the countries it covers and how many records. Eighteen vendors, eighteen files like this. Today these live in spreadsheets; here they land in a governed folder, a Unity Catalog volume."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">D0.2</span><h4>Show the governed Gold model</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Click</span><span class="v"><ol class="clicks"><li>Back to the schema → table <code>coverage</code> → <b>Sample data</b></li><li><b>Overview</b>: point at the column comments ("Use this to filter vendors by geography")</li><li>Table <code>vendors</code> → <b>Lineage</b> → shows <code>bronze_vendor_catalog</code> → <code>silver_vendor_catalog</code> → <code>vendors</code></li></ol></span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"A Lakeflow pipeline turns those files into clean tables — one row per vendor, per product, per country. Every column carries a business description; that's the vocabulary the AI uses later. And lineage shows every number back to the file it came from."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">D0.3</span><h4>The reframe — it's a filter</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Click</span><span class="v">SQL Editor (warehouse <code>2cc7c1b1bd1873ce</code>) — run:<br><code>SELECT DISTINCT vendor_name, counts FROM aws_serverless_ws_sr_catalog.lumora_vendor_marketplace.vendor_coverage_enriched WHERE data_type='HCP' AND geographic_region='Egypt' ORDER BY counts DESC</code></span></div>
+    <div class="row"><span class="lbl">Expect</span><span class="v">MediReach Analytics <b>45,429</b> · OncoReach <b>37,004</b> · AfriHealth Data <b>20,903</b></span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Here's the insight that drives everything: 'which vendor has HCP data in Egypt' is a WHERE clause. Once the data is governed, the answer is deterministic — every qualifying vendor, every time, nothing ranked away. The rest of the solution is about making that answer available in plain English, safely."</span></div>
+    <div class="row"><span class="lbl">Transition</span><span class="v">Back to the deck, Slide 4: "So what does that mean for the people who own this?"</span></div>
+  </div></div>
+</div></section>
+
+<!-- ============================================================ 4 -->
+<section id="who"><div class="wrap">
+  <h2><span class="n">04</span>Who benefits &amp; the journey — Slides 4 to 6</h2>
+
+  <div class="beat"><div class="top"><span class="id">S4</span><h4>For the executive sponsor (COO / CDAO)</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row say"><span class="lbl">Say</span><span class="v">"For the sponsor this is three things. Spend — with every contract and its coverage in one place you can see overlapping purchases and renewals coming. Speed — feasibility starts with an answer, not a ticket. Risk — cost and vendor contact details are governed by role, and every AI answer is evaluated and guard-railed."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">S5</span><h4>For the domain owner (Head of Data Partnerships &amp; RWD Sourcing)</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row say"><span class="lbl">Say</span><span class="v">"For the data partnerships team, you stop being a human search engine. Users get complete answers with the SQL behind them; you own the catalog's quality with rules written in plain English — in our build one rule flagged 28 of 126 coverage rows below the 5,000-record threshold — and you see four contracts heading for renewal before they auto-renew."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">S6</span><h4>One integrated journey on Databricks</h4><span class="t">~1 min</span></div><div class="rows">
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Left to right: Lakeflow lands the files with Auto Loader and builds governed tables with quality checks. Unity Catalog governs them — descriptions, masks, metric definitions. Lakebase serves the app in milliseconds. Gen AI adds documents, an agent, evaluation and guardrails. Genie makes it all queryable in English. And the app and dashboard put it in front of the business. One platform, one copy of the data."</span></div>
+    <div class="row"><span class="lbl">Transition</span><span class="v">Slide 7 → "Let me show you the journey a real sourcing request takes." <b>Switch to the app tab.</b></span></div>
+  </div></div>
+</div></section>
+
+<!-- ============================================================ 5 -->
+<section id="demo"><div class="wrap">
+  <h2><span class="n">05</span>Live demo — Slide 7 (~18 min)</h2>
+  <p class="sub">Follow the request from the business user's screen down into the platform. Each beat: where to click, what to do, what to say, what can go wrong.</p>
+
+  <div class="beat"><div class="top"><span class="id">D1</span><h4>The app — the flagship question</h4><span class="t">~3 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Click</span><span class="v">App tab → <b>3rd Party Data</b> → AI assistant box</span></div>
+    <div class="row"><span class="lbl">Do</span><span class="v">Ask: <code>Which vendors provide HCP data in Egypt?</code> → expect MediReach 45,429 · OncoReach 37,004 · AfriHealth 20,903. Scroll down to the vendor tiles.</span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"This is the marketplace your teams already know — but every number underneath is governed. The tiles load instantly because they're served from Lakebase, Databricks' managed Postgres. The assistant routed this to Genie, which ran SQL over the governed tables — all three vendors, not one."</span></div>
+    <div class="row risk"><span class="lbl">If slow</span><span class="v">First call can take ~30 s. Talk over it: "the supervisor is deciding which tool to use — tables or documents." Fallback: <code>evidence/app_logs.md</code> (<code>ASSISTANT_ANSWERED … secs=31.8</code>).</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">D2</span><h4>Same box, a document question</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Do</span><span class="v">Ask: <code>How does AfriHealth Data derive its HCP counts, and how often is the data refreshed?</code> → answer from the methodology document (licensed sources, public registries, partner feeds; validated <b>weekly</b>; emerging markets refreshed less often).</span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Same assistant, different source. That question isn't in a table, so the supervisor sent it to a Knowledge Assistant over the vendor documents. Facts from tables, narrative from documents — neither guesses at the other's job."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">D3</span><h4>Under the hood — Genie and its SQL</h4><span class="t">~3 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Click</span><span class="v">Genie tab → ask <code>Which vendors provide HCP data in Egypt?</code> → expand <b>Show code</b></span></div>
+    <div class="row"><span class="lbl">Do</span><span class="v">Point at <code>MEASURE(`Total Coverage`) … FROM mv_vendor_coverage WHERE `Data Type`='HCP' AND `Region`='Egypt'</code>. Then ask <code>Who can give me claims data in Brazil and Argentina?</code> (returns LatAm MedInsights in Brazil — and says only Brazil matched).</span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"This is the engine the assistant calls. It's not a black box — every answer shows the SQL. And notice it's honest about gaps: no vendor in this catalog covers claims in Argentina, and it says so instead of inventing one."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">D4</span><h4>One definition of every number — metric views</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Click</span><span class="v">Catalog → <code>mv_vendor_coverage</code> → show the YAML (measures: Total Coverage, Vendor Count, Product Count, Region Count; dimensions: Vendor, Data Type, Region, Therapeutic Area…). Mention <code>mv_contract_spend</code> (Total Annual Spend, Spend at Risk, Expiring Soon Contracts).</span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"'Coverage' and 'spend at risk' are defined once, here, in the catalog. Genie used this definition a minute ago; the dashboard uses it next. The number can't drift between chat and BI."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">D5</span><h4>The dashboard — and Ask Genie</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Click</span><span class="v">Dashboard tab → Page <b>Vendor coverage</b>: set filters Data type = HCP, Region = Egypt → 3 vendors. Show the heatmap (vendor depth by data type × region). Click <b>Ask Genie</b> → "Which regions have the most HCP vendors?" (EU and US: 5 each). Page <b>Contracts &amp; spend</b>: spend tiles, contract register, contacts.</span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Not every question is a chat question — coverage by region is best seen. Same metric definitions, plus Genie built into the dashboard, so a chart turns into a question without changing tools."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">D6</span><h4>Governance you can see — one policy, two identities</h4><span class="t">~3 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Do</span><span class="v"><ol class="clicks">
+      <li><b>Genie (you, finance):</b> ask <code>Which vendor contracts are expiring soon, and what do they cost?</code> → GlobalTrials Registry <b>$400,000</b>, TrialSphere Global / PubSignal Ltd / NeuroGraph <b>$250,000</b> each (spend at risk <b>$1.15M</b>).</li>
+      <li><b>App (service principal, not finance):</b> ask the same question → the four contracts, cost <b>masked</b>.</li>
+      <li>Catalog → <code>contracts</code> → column <code>annual_cost_usd</code> shows mask <code>mask_cost</code>; <code>vendor_contacts</code> shows masks on email/phone and a row filter.</li>
+    </ol></span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Same data, same question, two identities, two answers. I'm in the finance group, so I see cost. The app runs as a service identity that isn't, so it sees it masked — and says so rather than guessing. The policy is written once on the table and Unity Catalog enforces it in SQL, Genie, the metric views, the dashboard and the app."</span></div>
+    <div class="row risk"><span class="lbl">Check</span><span class="v">Do this once before the call. If the app ever shows cost, its service principal was added to <code>lumora_finance</code> — show the finance vs. analyst evidence files instead (<code>sql_evidence.md</code> vs <code>sql_evidence_finance.md</code>).</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">D7</span><h4>How the data got there — Lakeflow &amp; data quality</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Click</span><span class="v">Jobs &amp; Pipelines → <b>End-to-End Data Journey</b> run graph (setup → Auto Loader pipeline → enrich → governance → metric views; docs → vector search; DQ rules → DQ pipeline; Lakebase sync — all green). Open the <b>Ingest Vendor Catalog (Auto Loader)</b> pipeline graph. Then <b>DQ Expectations</b> pipeline → <code>coverage_clean</code> → Data quality: <code>coverage_min_5000</code> dropped <b>28</b>.</span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"One Lakeflow job runs the whole journey. Auto Loader picks up each vendor file exactly once — re-runs ingest nothing new. And the data-quality rule a data owner wrote in English — 'every coverage record should cover at least 5,000 records' — is enforced in a pipeline: 28 of 126 rows don't meet it."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">D8</span><h4>Guardrails — AI Gateway</h4><span class="t">~1 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Click</span><span class="v">Serving → <code>dev_soumya_r_lumora_guarded_llm</code> → AI Gateway: safety + PII guardrails, usage tracking, 100 calls/min. In Playground (that endpoint): <code>My SSN is 512-34-9981 and my email is jane.doe@example.com. Which vendor should I use?</code> → blocked, input anonymized to <code>&lt;US_SSN&gt;</code> / <code>&lt;EMAIL_ADDRESS&gt;</code>.</span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Hostile prompts and personal data never reach the model, and usage is tracked and capped centrally — not per app."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">D9</span><h4>Evaluation — and the leak it caught</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row"><span class="lbl">Click</span><span class="v">Experiments → <code>lumora_genie_eval</code> → compare runs: earlier runs <b>0.5 / 0.75</b> correctness → latest <code>hilarious-fawn-469</code> <b>1.0 / 1.0 / 1.0</b> (correctness / relevance / safety).</span></div>
+    <div class="row say"><span class="lbl">Say</span><span class="v">"This is the testbed you don't have today. And it earned its keep: the judge caught the agent quoting a contract cost that was masked in the tables — it had leaked through generated contract documents. We fixed it at the source, re-indexed, re-ran, and scored clean. That's why AI goes through an evaluation gate before it reaches users."</span></div>
+    <div class="row"><span class="lbl">Transition</span><span class="v">Back to the deck, Slide 8: "So trust is designed in on both sides."</span></div>
+  </div></div>
+</div></section>
+
+<!-- ============================================================ 6 -->
+<section id="close"><div class="wrap">
+  <h2><span class="n">06</span>Trust, value, proof, rollout, ask — Slides 8 to 12</h2>
+
+  <div class="beat"><div class="top"><span class="id">S8</span><h4>Trust by design: governed data, governed AI</h4><span class="t">~1 min</span></div><div class="rows">
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Data side: the policy lives on the table, enforced for every tool and identity. AI side: guardrails at the boundary, every answer traced, and an evaluation gate that already caught a real leak before go-live."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">S9</span><h4>Value model (illustrative assumptions)</h4><span class="t">~3 min</span></div><div class="rows">
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Three levers. Analyst time: 600 requests a year, six hours each today, half an hour of review — about $314K. Duplicate purchases: 5% of a $3.6M third-party data budget — $180K. Renewals: 10% better terms on the 30% that renews each year — $108K. About $600K a year against an assumed $50K run cost. Halve every lever and it's still $222K. These are placeholders — I'd like to replace them with your numbers."</span></div>
+    <div class="row"><span class="lbl">Know</span><span class="v">The synthetic portfolio in the demo totals <b>$4,275,000</b> annual spend (finance view) — the deck deliberately uses a lower $3.6M. Spend at risk on the 4 expiring contracts in the demo: <b>$1.15M</b>.</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">S10</span><h4>Proof points from the reference build</h4><span class="t">~1 min</span></div><div class="rows">
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Everything you saw was executed, not mocked: one Lakeflow job end to end, 18 vendors, 126 coverage rows, 72 documents indexed; 3 column masks and a row filter; evaluation at 1.0 on four question classes; guardrails blocking violent and PII prompts. The run logs are committed as text in the repository."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">S11</span><h4>Rollout: value in 30 days, production in 90</h4><span class="t">~2 min</span></div><div class="rows">
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Days 0–30: land three to five real vendor catalogs and put Genie on top — enough to measure turnaround and completeness against today. Days 31–60: masks, metric views, the dashboard, the document assistant and the evaluation gate on your real questions. Days 61–90: the app in the sourcing teams' hands, every vendor on scheduled ingestion, and the spend and renewal KPIs tracked."</span></div>
+  </div></div>
+
+  <div class="beat"><div class="top"><span class="id">S12</span><h4>The ask</h4><span class="t">~1 min</span></div><div class="rows">
+    <div class="row say"><span class="lbl">Say</span><span class="v">"Four asks. Sponsor: approve a 30-day pilot and name a domain owner. Domain owner: three to five vendor catalogs and twenty real sourcing questions. Together: confirm the value-model inputs and the success KPIs. And from us: we deploy this reference build in your workspace and size the run cost."</span></div>
+  </div></div>
+</div></section>
+
+<!-- ============================================================ 7 -->
+<section id="qa"><div class="wrap">
+  <h2><span class="n">07</span>Questions they're likely to ask</h2>
+  <p class="sub">Grouped the way they tend to come: the domain, the business value, what we're proposing, and the impact. Click to expand.</p>
+
+  <div class="qgroup">The domain</div>
+  <details><summary>Why is third-party data such a big deal for a CRO?</summary><div class="ans">
+    <p>CROs run trials and commercial programs for sponsors. Picking countries and sites (feasibility), finding investigators and HCPs, sizing patient populations and building real-world evidence all depend on licensed data from specialist vendors — HCP/HCO master data, claims, EHR-derived patient data, trial registries, publications. Choosing the wrong vendor, or not knowing one already covers a country, costs time at study start and money in duplicate licences.</p></div></details>
+  <details><summary>What do HCP, HCO, RWD mean here?</summary><div class="ans">
+    <p><b>HCP</b> = healthcare professional (physicians, nurses, pharmacists — the people you recruit as investigators or target commercially). <b>HCO</b> = healthcare organization (hospitals, clinics, sites). <b>RWD</b> = real-world data from routine care (claims, EHR, registries), used to generate real-world evidence.</p></div></details>
+  <details><summary>Why Egypt as the example?</summary><div class="ans">
+    <p>Emerging markets are where vendor coverage is thinnest and least obvious — exactly where a spreadsheet hunt fails and a complete answer matters. In the demo only 3 of 18 vendors cover HCP data in Egypt; the old pattern found one. The same query works for any country, data type or therapeutic area.</p></div></details>
+  <details><summary>Is any of this real data? Does vendor data contain patient information?</summary><div class="ans">
+    <p>Everything shown is synthetic — a fictional CRO and fictional vendors. In production, HCP data is professional personal data (names, emails), and patient-level data from vendors is typically de-identified. Either way the pattern is the same: classify sensitive columns and apply masks/row filters in Unity Catalog, plus the AI Gateway PII guardrail at the prompt boundary. Whether any of their vendor data is PHI is a question for their data/privacy team.</p></div></details>
+  <details><summary>Our vendors send catalogs in different formats. Does that break this?</summary><div class="ans">
+    <p>No — that's what the Bronze/Silver layers are for: land as-is, then standardize into one model with quality expectations. Auto Loader handles new and changed files incrementally, and failing records are measured rather than silently dropped. Real-world catalogs need a mapping step per format; that's part of the first 30 days.</p></div></details>
+
+  <div class="qgroup">Business value</div>
+  <details><summary>Where does the ~$600K come from? Is it real?</summary><div class="ans">
+    <p>It's an illustrative model with the formulas on Slide 9: analyst time saved ($313.5K), duplicate purchases avoided ($180K), renewal savings ($108K). The inputs are assumptions, clearly labelled. The first pilot deliverable is to replace them with Lumora's request volumes, analyst cost and data spend. Even with every lever halved it's ~$222K against an assumed $50K run cost.</p></div></details>
+  <details><summary>What KPIs would we track to prove it?</summary><div class="ans">
+    <p>Request turnaround (days → minutes), answer completeness vs. a gold set of real questions, analyst hours per request, duplicate-licence findings, renewals reviewed before notice deadline, spend at risk, data-quality pass rates, and AI evaluation scores per release.</p></div></details>
+  <details><summary>What's the payback period?</summary><div class="ans">
+    <p>On the illustrative model, under two months; on the conservative case, still within the first quarter of use. We'd confirm with a sizing of their actual workload — serverless, scales to zero, so cost tracks usage.</p></div></details>
+  <details><summary>We already have a chatbot that answers vendor questions. Why change?</summary><div class="ans">
+    <p>Because the hard part isn't the chat — it's completeness and trust. Pasting spreadsheets into a prompt gives answers that vary and can't be audited. Here, the facts come from governed tables with SQL shown, documents come from a separate assistant with citations, access is enforced per user, and every release is evaluated. You can keep the same front end.</p></div></details>
+
+  <div class="qgroup">What we're proposing</div>
+  <details><summary>What exactly are you proposing we do?</summary><div class="ans">
+    <p>A 30-day pilot: land 3–5 real vendor catalogs into governed tables, stand up Genie on them, and measure turnaround and completeness on 20 of your real questions against today. If it hits the KPIs, phases 2 and 3 add governance, the document assistant, the evaluation gate, the dashboard and the app (Slide 11).</p></div></details>
+  <details><summary>What do you need from our team?</summary><div class="ans">
+    <p>An executive sponsor and a named domain owner, 3–5 vendor catalogs, 20 real sourcing questions, a Databricks workspace (or access to yours), and confirmation of the value-model inputs. We bring the reference build, packaged as a Databricks Asset Bundle so it deploys as code.</p></div></details>
+  <details><summary>Do we have to rebuild our current app?</summary><div class="ans">
+    <p>No. The marketplace UI stays familiar; what changes is the engine under it — Lakebase-served tiles and an assistant wired to the governed agents. The app can also embed the dashboard later.</p></div></details>
+  <details><summary>Why one Genie space and an agent — isn't Genie enough?</summary><div class="ans">
+    <p>Genie is the right tool for structured questions (and starts the pilot). Some questions live in documents — methodology, contract terms, onboarding — so a supervisor routes those to a Knowledge Assistant. Start simple; add the supervisor when document questions matter.</p></div></details>
+  <details><summary>Who maintains it after go-live?</summary><div class="ans">
+    <p>The domain owner owns the catalog content: column descriptions, metric definitions and data-quality rules (in plain English). Changes live in Git and deploy through bundles, so they're reviewed like code. Platform operations are serverless.</p></div></details>
+
+  <div class="qgroup">How it impacts us</div>
+  <details><summary>How does this change a sourcing analyst's day?</summary><div class="ans">
+    <p>Instead of searching spreadsheets and emailing vendor managers, they ask the question, get every qualifying vendor with the SQL, and spend their time on the decision. Requests that took days are answered in the same session.</p></div></details>
+  <details><summary>How does it change risk and compliance?</summary><div class="ans">
+    <p>Contract cost and vendor contact details are visible only to the roles that need them — enforced in one place for every tool. Prompts with personal data are blocked at the gateway. Every answer is traceable to SQL or a cited document, and access is auditable through Unity Catalog's audit logs.</p></div></details>
+  <details><summary>What happens to our existing spreadsheets and SharePoint?</summary><div class="ans">
+    <p>They become the input, not the system of record. Vendor managers keep dropping exports where they do today (or into a governed volume); the pipeline picks them up incrementally. Over time the governed tables become the single source of truth.</p></div></details>
+  <details><summary>What could go wrong?</summary><div class="ans">
+    <p>Messy source catalogs (handled by the Silver layer and DQ rules), unclear ownership (hence a named domain owner), and AI answers drifting as data changes — which is why the evaluation derives its expected answers from the governed tables and runs every release. We saw that gate catch a real issue in this build.</p></div></details>
+
+  <div class="qgroup">Quick technical follow-ups</div>
+  <details><summary>Does Genie respect the masks?</summary><div class="ans"><p>Yes — it runs SQL as the person asking. You saw it: finance sees $400,000; the app's identity sees it masked.</p></div></details>
+  <details><summary>Do masks carry into Lakebase?</summary><div class="ans"><p>No — Lakebase is a separate Postgres serving store. The pattern is to publish only what the app needs; our <code>vendor_tiles</code> has no cost column by design.</p></div></details>
+  <details><summary>Can Power BI or Tableau use the metric views?</summary><div class="ans"><p>Anything that runs SQL on the warehouse can query them with <code>MEASURE()</code>. Native semantic integration with external BI tools is evolving — we'll confirm current support before committing.</p></div></details>
+</div></section>
+
+<!-- ============================================================ 8 -->
+<section id="ref"><div class="wrap">
+  <h2><span class="n">08</span>Links &amp; numbers cheat-sheet</h2>
+  <div class="grid2">
+    <table>
+      <tr><th colspan="2">Numbers you can quote</th></tr>
+      <tr><td>Vendors / products</td><td>18 / 44</td></tr>
+      <tr><td>Coverage rows · regions · TAs · data types</td><td>126 · 16 · 8 · 8</td></tr>
+      <tr><td>Egypt HCP</td><td>MediReach 45,429 · OncoReach 37,004 · AfriHealth 20,903</td></tr>
+      <tr><td>Contracts</td><td>4 Active · 4 Expiring Soon · 10 Expired</td></tr>
+      <tr><td>Expiring soon (finance view)</td><td>GlobalTrials $400K · TrialSphere / PubSignal / NeuroGraph $250K → $1.15M at risk</td></tr>
+      <tr><td>Total annual spend (synthetic)</td><td>$4,275,000</td></tr>
+      <tr><td>DQ rule coverage ≥ 5,000</td><td>28 of 126 flagged (98 kept)</td></tr>
+      <tr><td>Documents indexed</td><td>72 (cost redacted in all)</td></tr>
+      <tr><td>Contacts</td><td>54 (finance) · 36 visible to others</td></tr>
+      <tr><td>MLflow eval (latest)</td><td>correctness 1.0 · relevance 1.0 · safety 1.0</td></tr>
+      <tr><td>Value model</td><td>$601.5K/yr illustrative · $222K conservative · $50K run cost assumed</td></tr>
+    </table>
+    <table>
+      <tr><th colspan="2">Where things live</th></tr>
+      <tr><td>Schema</td><td><code>aws_serverless_ws_sr_catalog.lumora_vendor_marketplace</code></td></tr>
+      <tr><td>App</td><td><a href="https://lumora-data-marketplace-7474651022795245.aws.databricksapps.com">lumora-data-marketplace</a></td></tr>
+      <tr><td>Genie</td><td><a href="https://fevm-aws-serverless-ws-sr.cloud.databricks.com/genie/rooms/01f1c14e775014ac9693c78ae663bc6c">01f1c14e775014ac9693c78ae663bc6c</a></td></tr>
+      <tr><td>Dashboard</td><td><a href="https://fevm-aws-serverless-ws-sr.cloud.databricks.com/dashboardsv3/01f1c150bacd1aa3bab5046199ce019a/published">01f1c150bacd1aa3bab5046199ce019a</a></td></tr>
+      <tr><td>Supervisor / KA</td><td><code>mas-f66866f4-endpoint</code> · <code>ka-f3190c1a-endpoint</code></td></tr>
+      <tr><td>Gateway</td><td><code>dev_soumya_r_lumora_guarded_llm</code></td></tr>
+      <tr><td>Lakebase</td><td><code>lumora-marketplace-db</code> → schema <code>lumora</code> → <code>vendor_tiles</code></td></tr>
+      <tr><td>Jobs</td><td>End-to-End <code>789028661266524</code> · Agent &amp; Eval <code>104088374467144</code></td></tr>
+      <tr><td>Pipelines</td><td>Auto Loader <code>04e3d017…</code> · DQ <code>bfee5b11…</code></td></tr>
+      <tr><td>MLflow</td><td><code>/Users/soumya.r@databricks.com/lumora_genie_eval</code></td></tr>
+      <tr><td>Privileged group</td><td><code>lumora_finance</code> (you are a member; the app SP is not)</td></tr>
+      <tr><td>Repo</td><td><a href="https://github.com/soumya-roy-dbx/lumora-vendor-marketplace">github.com/soumya-roy-dbx/lumora-vendor-marketplace</a></td></tr>
+    </table>
+  </div>
+</div></section>
+
+<footer><div class="wrap">Presenter guide for the Lumora Clinical Research reference build · synthetic data only · fictional company and vendors. Numbers sourced from <code>evidence/</code> (captured 2026-10-06).</div></footer>
+</body>
+</html>
