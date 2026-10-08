@@ -48,7 +48,7 @@ conversation, with governance enforced by the platform rather than by each app.
 | **Genie Agent** | One Genie space over Gold tables, view, metric views and masked contacts, with instructions, certified SQL and benchmarks | [`genie/create_space.py`](genie/create_space.py) | [`evidence/genie_conversations.md`](evidence/genie_conversations.md) |
 | **Databricks App** | Streamlit marketplace: Lakebase-served vendor tiles + AI assistant calling the supervisor; plus an AI/BI dashboard with Ask Genie | [`app_ui/`](app_ui/), [`dashboards/build_dashboard.py`](dashboards/build_dashboard.py) | [`evidence/platform_status.md`](evidence/platform_status.md), [`evidence/app_logs.md`](evidence/app_logs.md) |
 
-Business presentation: [`deck/Lumora_Vendor_Marketplace_Deck.pdf`](deck/Lumora_Vendor_Marketplace_Deck.pdf) (text + speaker notes: [`deck/deck.md`](deck/deck.md)). Presenter run sheet (click paths, talk track, likely questions): [`presenter/presenter_guide.html`](presenter/presenter_guide.html).
+Business presentation: [`deck/Lumora_Vendor_Marketplace_Deck.pdf`](deck/Lumora_Vendor_Marketplace_Deck.pdf) (text + speaker notes: [`deck/deck.md`](deck/deck.md)).
 
 ## How to run it
 
@@ -83,4 +83,3 @@ else gets masked values automatically (SQL, Genie, metric views, dashboard, app)
 | `app_ui/` | Databricks App (Streamlit) |
 | `evidence/` | **Execution evidence as text** — exported job runs, pipeline event logs, live query/agent/Genie/gateway output |
 | `deck/` | Business presentation (PDF + Markdown with speaker notes) |
-| `presenter/` | Presenter guide: where to click in Databricks, what to say, likely questions |
