@@ -23,19 +23,19 @@ _From an 18-spreadsheet vendor hunt to a governed, complete answer in seconds._
 
 ## Slide 2 — Today: the vendor catalog lives in spreadsheets — and so do the risks
 
-- Feasibility, RWE and commercial teams ask: which vendor covers this data type, in this country, for this therapeutic area?
-- The catalog is a folder of SharePoint workbooks; a homegrown assistant pastes them into an LLM prompt
-- Answers drift: the same question returns different — and incomplete — vendor lists
-- Contract cost and vendor contact details are visible to anyone who can open the files
-- No evaluation, no guardrails, no audit trail — and renewals slip past without a decision
+- It's never one question: teams constantly interrogate ~18 vendors — coverage, contracts, methodology, SLAs, onboarding.
+- The catalog is two kinds of data: structured spreadsheets (vendor × data type × region × counts) AND unstructured free-text files (contract terms, data dictionaries, methodology, onboarding).
+- A SQL join can't answer plain-English or document questions; pasting spreadsheets + docs into a prompt can't answer either kind reliably.
+- Structured answers drift and drop vendors — 1 of 3 in a real run — and document answers come back ungrounded and uncited.
+- Contract cost and vendor-contact PII sit in open files; no evaluation, no audit trail; renewals slip past unnoticed.
 
 **Speaker notes**
 
 - *Purpose:* Make the cost of the status quo concrete for both personas.
-- *Talk track:* Every study-feasibility or commercial targeting question starts with: which data vendor can give us this, where? Lumora's answer lives in spreadsheets. The current assistant stuffs those spreadsheets into a prompt, so the same question gets different answers, and some vendors are silently dropped. Meanwhile contract costs and named vendor contacts sit in files with no access control, nothing measures answer quality, and renewal dates go by unnoticed.
-- *Evidence:* Observed failure mode in the reference environment: the prompt-stuffing path answered the Egypt HCP question with 1 vendor instead of 3.
+- *Talk track:* The teams don't ask one question — they ask a constant stream about these vendors. And the answers live in two very different places: structured spreadsheets — vendor, data type, region, counts — and unstructured free-text files like contract terms, data dictionaries, methodology notes and onboarding guides. You can't SQL-join your way to the document questions, and you can't paste everything into a prompt and trust it: the structured answers drift and silently drop qualifying vendors, and the document answers are ungrounded guesses. On top of that, cost and contact PII are exposed, nothing measures answer quality, and renewals lapse.
+- *Evidence:* Observed failure mode in the reference environment: the prompt-stuffing path answered the Egypt HCP question with 1 vendor instead of 3. · 72 free-text vendor documents (contract summaries, data dictionaries, methodology, onboarding) also have to be answerable, not just the tables.
 - *Transition:* Here's what that costs — and what it means for the people who own it.
-- *Likely question:* Can't we just give the LLM a bigger context window? — The issue is the approach: vendor selection is a structured filter question; retrieval over pasted text ranks and drops vendors.
+- *Likely question:* Why not just join the spreadsheets and run SQL? — That handles the easy, structured half only. Half the questions are answered from free-text documents, and users ask in plain English, not SQL — so you need both a governed structured layer and grounded document retrieval, which is exactly the split in the solution.
 
 ---
 
