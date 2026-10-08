@@ -9,43 +9,19 @@ Google Slides: https://docs.google.com/presentation/d/1FxS7cNgPotaaIvkm2yCXd2ab9
 
 ## Slide 1 — From spreadsheet guesswork to governed answers
 
-_Lumora Clinical Research × Databricks · A governed third-party data marketplace_
+_From an 18-spreadsheet vendor hunt to a governed, complete answer in seconds._
 
 **Speaker notes**
 
 - *Purpose:* Open with the outcome, not the technology. Set expectations: 10 minutes of business framing, then a live demo, then the value model and next steps.
 - *Talk track:* Lumora spends millions a year on third-party data and makes study-feasibility and commercial decisions on it. Today, finding out which vendor covers what, where, takes days and the answers are inconsistent. In the next 30 minutes I'll show how we turn that into a governed, instant, auditable answer — and what it is worth. Lumora is a fictional CRO and every dataset you will see is synthetic.
 - *Evidence:* Reference build runs end-to-end on Databricks on synthetic data (fictional CRO and fictional vendors).
-- *Transition:* Let me start with the outcome we are targeting.
+- *Transition:* That payoff rests on fixing something painful — let me start with the problem your teams hit every day.
 - *Likely question:* Is this real data? — No. Everything is synthetic so it can be shared; the pipeline is identical for real vendor catalogs.
 
 ---
 
-## Slide 2 — The outcome: faster, complete, governed vendor decisions
-
-**~$600K / year**
-- Illustrative annual value: analyst time, avoided duplicate data buys, better renewals
-
-**Days → minutes**
-- Vendor-sourcing requests answered in the same session, with the SQL shown
-
-**3 of 3 vendors**
-- Complete, deterministic answers — the old pattern returned 1 of 3
-
-
-> Value figures are illustrative assumptions (see value model slide), not customer data. Completeness result from the reference build.
-
-**Speaker notes**
-
-- *Purpose:* Lead with the three numbers the buyer cares about before any architecture.
-- *Talk track:* Three outcomes. First, money: on conservative-but-realistic assumptions this is worth roughly six hundred thousand dollars a year — I'll show the math later and you can change every input. Second, speed: a request that takes an analyst about three business days becomes a same-session answer. Third, trust: asked which vendors provide HCP data in Egypt, the governed solution returns all three matching vendors every time; the spreadsheet-in-a-prompt pattern returned one.
-- *Evidence:* Value model: 600 requests × 5.5 h saved × $95/h + 5% duplicate-spend avoided + 10% renewal saving on 30% of $3.6M spend. · Reference build: Genie returns MediReach 45,429 / OncoReach 37,004 / AfriHealth 20,903 HCPs for Egypt; the prompt-stuffing assistant returned only GlobalHCP Registry.
-- *Transition:* Why is that hard today? Let's look at the status quo.
-- *Likely question:* Where does $600K come from? — Three levers, all assumptions you can replace; slide 9 shows each formula.
-
----
-
-## Slide 3 — Today: the vendor catalog lives in spreadsheets — and so do the risks
+## Slide 2 — Today: the vendor catalog lives in spreadsheets — and so do the risks
 
 - Feasibility, RWE and commercial teams ask: which vendor covers this data type, in this country, for this therapeutic area?
 - The catalog is a folder of SharePoint workbooks; a homegrown assistant pastes them into an LLM prompt
@@ -58,12 +34,12 @@ _Lumora Clinical Research × Databricks · A governed third-party data marketpla
 - *Purpose:* Make the cost of the status quo concrete for both personas.
 - *Talk track:* Every study-feasibility or commercial targeting question starts with: which data vendor can give us this, where? Lumora's answer lives in spreadsheets. The current assistant stuffs those spreadsheets into a prompt, so the same question gets different answers, and some vendors are silently dropped. Meanwhile contract costs and named vendor contacts sit in files with no access control, nothing measures answer quality, and renewal dates go by unnoticed.
 - *Evidence:* Observed failure mode in the reference environment: the prompt-stuffing path answered the Egypt HCP question with 1 vendor instead of 3.
-- *Transition:* What does that mean for the people who own this problem? Start with the executive sponsor.
+- *Transition:* Here's what that costs — and what it means for the people who own it.
 - *Likely question:* Can't we just give the LLM a bigger context window? — The issue is the approach: vendor selection is a structured filter question; retrieval over pasted text ranks and drops vendors.
 
 ---
 
-## Slide 4 — For the executive sponsor (COO / Chief Data & Analytics Officer)
+## Slide 3 — For the executive sponsor (COO / Chief Data & Analytics Officer)
 
 **What you get**
 - Lower 3PD spend: duplicate purchases and blind renewals surface early
@@ -86,7 +62,7 @@ _Lumora Clinical Research × Databricks · A governed third-party data marketpla
 
 ---
 
-## Slide 5 — For the domain owner (Head of Data Partnerships & RWD Sourcing)
+## Slide 4 — For the domain owner (Head of Data Partnerships & RWD Sourcing)
 
 **What changes for your team**
 - Self-service answers from the business, with the SQL shown
@@ -104,8 +80,32 @@ _Lumora Clinical Research × Databricks · A governed third-party data marketpla
 - *Purpose:* Show the domain owner what their day looks like and which KPIs they control.
 - *Talk track:* For the head of data partnerships, the team stops being a human search engine. Business users get complete answers with the SQL that produced them. Your team writes data-quality rules in English and they run as pipeline checks. And you get a live view of renewals and spend at risk instead of a spreadsheet you maintain by hand.
 - *Evidence:* Reference build: a natural-language DQ rule (coverage ≥ 5,000 records) compiled to SQL and enforced in a Lakeflow pipeline, flagging 28 of 126 coverage rows (98 kept). · Metric views define Spend at Risk and Expiring Soon Contracts once for Genie and the dashboard; 4 contracts are currently Expiring Soon.
-- *Transition:* Here is how the solution fits together.
+- *Transition:* So what is all of that worth? Here are the numbers.
 - *Likely question:* Does my team need to write code? — No for asking questions and writing DQ rules; the pipeline itself is deployed once as code.
+
+---
+
+## Slide 5 — The outcome: faster, complete, governed vendor decisions
+
+**~$600K / year**
+- Illustrative annual value: analyst time, avoided duplicate data buys, better renewals
+
+**Days → minutes**
+- Vendor-sourcing requests answered in the same session, with the SQL shown
+
+**3 of 3 vendors**
+- Complete, deterministic answers — the old pattern returned 1 of 3
+
+
+> Value figures are illustrative assumptions (see value model slide), not customer data. Completeness result from the reference build.
+
+**Speaker notes**
+
+- *Purpose:* Lead with the three numbers the buyer cares about before any architecture.
+- *Talk track:* Three outcomes. First, money: on conservative-but-realistic assumptions this is worth roughly six hundred thousand dollars a year — I'll show the math later and you can change every input. Second, speed: a request that takes an analyst about three business days becomes a same-session answer. Third, trust: asked which vendors provide HCP data in Egypt, the governed solution returns all three matching vendors every time; the spreadsheet-in-a-prompt pattern returned one.
+- *Evidence:* Value model: 600 requests × 5.5 h saved × $95/h + 5% duplicate-spend avoided + 10% renewal saving on 30% of $3.6M spend. · Reference build: Genie returns MediReach 45,429 / OncoReach 37,004 / AfriHealth 20,903 HCPs for Egypt; the prompt-stuffing assistant returned only GlobalHCP Registry.
+- *Transition:* And here's how it works, end to end.
+- *Likely question:* Where does $600K come from? — Three levers, all assumptions you can replace; slide 9 shows each formula.
 
 ---
 
